@@ -3,21 +3,19 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware # <-- IMPORT CORS
 from database import get_db_connection 
 from pydantic import BaseModel # <-- 1. Import Pydantic
-
-# --- 1. IMPORT SLOWAPI ---
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 app = FastAPI()
 
-# --- 2. SETUP SLOWAPI LIMITER ---
+# --- SLOWAPI LIMITER ---
 # (This creates the 'limiter' variable your endpoint is looking for)
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# --- ADD CORS MIDDLEWARE ---
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Allows any frontend to connect
@@ -27,15 +25,13 @@ app.add_middleware(
 )
 
 
-# --- 2. DEFINE THE DATA MODEL (DTO) ---
-# This tells FastAPI exactly what JSON shape to expect from React
+# --- (DTO) ---
 class TrialUpdateDTO(BaseModel):
     title: str
     phase: str
     status: str
 
 # --- ENDPOINTS ---
-
 @app.get("/")
 def greet():
     return {"message": "API is running!"}
@@ -106,7 +102,7 @@ def get_all_trials(page: int = 1, limit: int = 20):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"DB query failed: {str(e)}")
         
-    # We now return a dictionary containing the data AND the pagination metadata
+    
     return {
         "data": trials,
         "current_page": page,
@@ -115,7 +111,7 @@ def get_all_trials(page: int = 1, limit: int = 20):
     }
 
 
-# --- 3. THE NEW EDIT ENDPOINT ---
+# --- EDIT ENDPOINT ---
 @app.put("/api/trials/{trial_id}")
 def update_trial(trial_id: int, trial_data: TrialUpdateDTO):
     try:
@@ -138,7 +134,7 @@ def update_trial(trial_id: int, trial_data: TrialUpdateDTO):
         raise HTTPException(status_code=500, detail=f"Failed to update: {str(e)}")
 
 
-# --- 4. THE DELETE ENDPOINT ---
+# --- DELETE ENDPOINT ---
 @app.delete("/api/trials/{trial_id}")
 def delete_trial(trial_id: int):
     try:
@@ -158,9 +154,6 @@ def delete_trial(trial_id: int):
 
 
 
-    # --- 5. THE ADD (POST) ENDPOINT ---
-
-# Define the expected JSON shape for a new record
 class TrialCreateDTO(BaseModel):
     title: str
     phase: str
@@ -188,7 +181,7 @@ def add_trial(trial_data: TrialCreateDTO):
         raise HTTPException(status_code=500, detail=f"Failed to add: {str(e)}")
 
 
-# --- 4. UPDATED: RATE LIMITED STATS ENDPOINT ---
+# -----RATE LIMITED STATS ENDPOINT ---
 @app.get("/api/trials/stats")
 @limiter.limit("3/minute")  
 def get_dashboard_stats(request: Request): 
