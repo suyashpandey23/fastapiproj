@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const API_URL = "http://127.0.0.1:8000/api/trials";
-const STATS_URL = "http://127.0.0.1:8000/api/trials/stats"; // <-- Needed for the dashboard
+const STATS_URL = "http://127.0.0.1:8000/api/trials/stats"; 
 
 export default function App() {
-  // --- STATE ---
+
   const [trials, setTrials] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -27,12 +27,10 @@ export default function App() {
 
   // --- EFFECTS ---
   
-  // 1. Load Dashboard stats ONCE when page loads
   useEffect(() => {
     loadStats();
   }, []);
 
-  // 2. Watch current page and search term
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       loadData(currentPage);
@@ -41,8 +39,7 @@ export default function App() {
   }, [currentPage, searchTerm]);
 
 
-  // --- API CALLS ---
-  
+  // --- API CALLS --- 
   const loadData = async (page = 1) => {
     try {
       const res = await fetch(`${API_URL}?page=${page}&limit=${limit}&search=${searchTerm}`);
@@ -56,7 +53,6 @@ export default function App() {
     }
   };
 
-  // --- THIS WAS THE MISSING FUNCTION! ---
   const loadStats = async () => {
     try {
       setRateLimitMsg(""); 
